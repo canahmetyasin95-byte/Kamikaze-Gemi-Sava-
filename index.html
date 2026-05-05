@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Pasifik Fırtınası">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="description" content="1944 Kamikaze Savunması – Pasifik Fırtınası">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Pasifik Fırtınası – 1944</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Special+Elite&family=Oswald:wght@400;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0a0a0f;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    font-family: 'Special Elite', cursive;
+    overflow: hidden;
+  }
+
+  #header {
+    color: #c8a84b;
+    font-size: 28px;
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+    text-shadow: 0 0 20px #c8a84b88;
+  }
+
+  #subtitle {
+    color: #8b6a2a;
+    font-size: 12px;
+    letter-spacing: 4px;
+    margin-bottom: 16px;
+  }
+
+  #gameWrapper {
+    position: relative;
+    border: 2px solid #c8a84b44;
+    box-shadow: 0 0 40px #00000099, inset 0 0 60px #00000055;
+  }
+
+  canvas { display: block; }
+
+  #hud {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    right: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    pointer-events: none;
+  }
+
+  .hud-box {
+    background: rgba(0,0,0,0.65);
+    border: 1px solid #c8a84b55;
+    padding: 6px 14px;
+    border-radius: 2px;
+  }
+
+  .hud-label {
+    font-family: 'Oswald', sans-serif;
+    font-size: 10px;
+    color: #8b6a2a;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+
+  .hud-value {
+    font-family: 'Oswald', sans-serif;
+    font-size: 22px;
+    color: #e8c86a;
+    text-shadow: 0 0 10px #c8a84b88;
+  }
+
+  #healthBar {
+    width: 120px;
+    height: 8px;
+    background: #1a1a1a;
+    border: 1px solid #c8a84b44;
+    border-radius: 1px;
+    margin-top: 4px;
+    overflow: hidden;
+  }
+
+  #healthFill {
+    height: 100%;
+    background: linear-gradient(90deg, #8b2222, #cc4444);
+    transition: width 0.2s;
+    border-radius: 1px;
+  }
+
+  #overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.82);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+  }
+
+  #overlay h2 {
+    font-family: 'Oswald', sans-serif;
+    font-size: 36px;
+    color: #c8a84b;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    text-shadow: 0 0 30px #c8a84baa;
+  }
+
+  #overlay p {
+    color: #aaa;
+    font-size: 14px;
+    letter-spacing: 2px;
+    text-align: center;
+    line-height: 1.8;
+  }
+
+  #overlay .final-score {
+    font-family: 'Oswald', sans-serif;
+    font-size: 48px;
+    color: #e8c86a;
+  }
+
+  #startBtn {
+    background: transparent;
+    border: 2px solid #c8a84b;
+    color: #c8a84b;
+    font-family: 'Oswald', sans-serif;
+    font-size: 16px;
+    letter-spacing: 4px;
+    padding: 12px 36px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    margin-top: 8px;
+  }
+
+  #startBtn:hover {
+    background: #c8a84b22;
+    box-shadow: 0 0 20px #c8a84b55;
+  }
+
+  #controls-hint {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #666;
+    font-size: 11px;
+    letter-spacing: 3px;
+    pointer-events: none;
+  }
+
+  /* ── MOBİL KONTROL BUTONLARI ──
+     position:fixed → her zaman ekranın köşelerinde,
+     canvas boyutundan bağımsız */
+  #btnLeft, #btnRight {
+    position: fixed;
+    bottom: 24px;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 2px solid #c8a84b99;
+    background: rgba(0, 0, 0, 0.60);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    z-index: 999;
+    transition: background 0.1s, border-color 0.1s, transform 0.1s;
+    box-shadow: 0 0 16px #00000099, inset 0 0 10px #c8a84b11;
+  }
+
+  #btnLeft  { left: 16px; }
+  #btnRight { right: 16px; }
+
+  #btnLeft:active,  #btnLeft.pressed,
+  #btnRight:active, #btnRight.pressed {
+    background: rgba(200, 168, 75, 0.25);
+    border-color: #c8a84b;
+    transform: scale(0.91);
+    box-shadow: 0 0 22px #c8a84b66;
+  }
+
+  #btnLeft svg, #btnRight svg {
+    width: 36px;
+    height: 36px;
+    fill: #c8a84b;
+    opacity: 0.95;
+  }
+
+  /* ── ATIŞ BUTONU ── */
+  #btnShoot {
+    position: fixed;
+    bottom: 24px;
+    left: calc(50% - 68px);
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: 2px solid #4af;
+    background: rgba(0, 40, 80, 0.70);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    z-index: 999;
+    transition: background 0.1s, border-color 0.1s, transform 0.1s;
+    box-shadow: 0 0 16px #0044aa88, inset 0 0 10px #004488;
+  }
+
+  #btnShoot:active, #btnShoot.pressed {
+    background: rgba(0, 120, 200, 0.35);
+    border-color: #88ddff;
+    transform: scale(0.91);
+    box-shadow: 0 0 24px #44aaff88;
+  }
+
+  #btnShoot.cooldown {
+    border-color: #336;
+    opacity: 0.55;
+  }
+
+  #btnShoot svg {
+    width: 28px;
+    height: 28px;
+    fill: #66ccff;
+  }
+
+  #shootLabel {
+    font-family: 'Oswald', sans-serif;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: #66ccff;
+    pointer-events: none;
+  }
+
+  /* dolum çubuğu */
+  #shootCooldownBar {
+    position: fixed;
+    bottom: 100px;
+    left: calc(50% - 68px);
+    width: 50px;
+    height: 4px;
+    background: #112233;
+    border-radius: 2px;
+    overflow: hidden;
+    z-index: 999;
+  }
+
+  #shootCooldownFill {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, #4af, #8ef);
+    border-radius: 2px;
+    transition: width 0.05s linear;
+  }
+
+  /* ── EMP / RADAR BUTONU ── */
+  #btnEmp {
+    position: fixed;
+    bottom: 24px;
+    left: calc(50% + 34px);
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 2px solid #44ff88;
+    background: rgba(0, 40, 20, 0.70);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    z-index: 999;
+    transition: background 0.1s, border-color 0.1s, transform 0.1s;
+    box-shadow: 0 0 16px #00aa4488, inset 0 0 10px #004422;
+  }
+
+  #btnEmp:active, #btnEmp.pressed {
+    background: rgba(0, 200, 80, 0.25);
+    border-color: #88ffcc;
+    transform: scale(0.91);
+    box-shadow: 0 0 24px #44ff8888;
+  }
+
+  #btnEmp.cooldown {
+    border-color: #1a3322;
+    opacity: 0.55;
+  }
+
+  #btnEmp svg {
+    width: 26px;
+    height: 26px;
+    stroke: #44ff88;
+    fill: none;
+  }
+
+  #empLabel {
+    font-family: 'Oswald', sans-serif;
+    font-size: 8px;
+    letter-spacing: 1px;
+    color: #44ff88;
+    pointer-events: none;
+  }
+
+  #empCooldownBar {
+    position: fixed;
+    bottom: 100px;
+    left: calc(50% + 34px);
+    width: 50px;
+    height: 4px;
+    background: #112211;
+    border-radius: 2px;
+    overflow: hidden;
+    z-index: 999;
+  }
+
+  #empCooldownFill {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, #44ff88, #88ffcc);
+    border-radius: 2px;
+    transition: width 0.05s linear;
+  }
+
+  /* ── SANİYE SAYACI HUD ── */
+  #waveTimer {
+    font-family: 'Oswald', sans-serif;
+    font-size: 18px;
+    color: #00ff66;
+    text-shadow: 0 0 8px #00ff6688, 0 0 16px #00ff6644;
+    transition: color 0.1s, text-shadow 0.1s;
+  }
+
+  #waveTimer.flash {
+    color: #ff2222;
+    text-shadow: 0 0 8px #ff222288, 0 0 20px #ff222266;
+  }
+</style>
+</head>
+<body>
+
+<div id="header">Pasifik Fırtınası</div>
+<div id="subtitle">1944 · Kamikaze Savunması</div>
+
+<div id="gameWrapper">
+  <canvas id="canvas"></canvas>
+
+  <div id="hud">
+    <div class="hud-box">
+      <div class="hud-label">Skor</div>
+      <div class="hud-value" id="scoreDisplay">0</div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">Gemi Sağlığı</div>
+      <div id="healthBar"><div id="healthFill"></div></div>
+      <div class="hud-value" id="hpDisplay">100</div>
+    </div>
+    <div class="hud-box">
+      <div class="hud-label">Dalga</div>
+      <div class="hud-value" id="waveDisplay">1</div>
+      <div id="waveTimer">67</div>
+    </div>
+  </div>
+
+  <div id="overlay">
+    <h2 id="overlayTitle">Pasifik Fırtınası</h2>
+    <p id="overlayMsg">← → veya A D tuşları ile gemiyi hareket ettir<br>Kamikazelerden kaçarak hayatta kal!</p>
+    <div class="final-score" id="finalScore" style="display:none"></div>
+    <button id="startBtn">BAŞLAT</button>
+  </div>
+
+  <!-- Klavye ipucu – sadece masaüstünde görünür -->
+  <div id="controls-hint">← → · A D · HAREKET</div>
+</div>
+
+<!-- Mobil butonlar: gameWrapper DIŞINDA, ekrana sabitlenmiş -->
+<button id="btnLeft" aria-label="Sola git">
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+  </svg>
+</button>
+
+<!-- Atış butonu -->
+<button id="btnShoot" aria-label="Ateş et">
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 2L8 8h3v10h2V8h3L12 2z"/>
+  </svg>
+  <span id="shootLabel">ATEŞ</span>
+</button>
+<div id="shootCooldownBar"><div id="shootCooldownFill"></div></div>
+
+<!-- EMP / Radar butonu -->
+<button id="btnEmp" aria-label="Radar Darbesi">
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" stroke-width="1.5">
+    <!-- Radar sembolü: merkezden yayılan yaylar -->
+    <circle cx="12" cy="12" r="1.5" fill="#44ff88" stroke="none"/>
+    <path d="M12 12 L19 5" stroke-linecap="round"/>
+    <path d="M8.5 8.5 A5 5 0 0 1 15.5 8.5" stroke-linecap="round"/>
+    <path d="M5.5 5.5 A9 9 0 0 1 18.5 5.5" stroke-linecap="round"/>
+    <circle cx="12" cy="12" r="10" stroke-dasharray="2 3" stroke-width="1"/>
+  </svg>
+  <span id="empLabel">EMP</span>
+</button>
+<div id="empCooldownBar"><div id="empCooldownFill"></div></div>
+
+<button id="btnRight" aria-label="Sağa git">
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+  </svg>
+</button>
+
+<script>
+// ─── CANVAS KURULUM ───────────────────────────────────────────────────────────
+const canvas = document.getElementById('canvas');
+const ctx    = canvas.getContext('2d');
+const W = canvas.width  = 600;
+const H = canvas.height = 520;
+
+// ─── MOBİL ÖLÇEKLEME ─────────────────────────────────────────────────────────
+// Ekran 600px'den darsa gameWrapper'ı ve canvas'ı orantılı küçült
+function scaleGame() {
+  const wrapper  = document.getElementById('gameWrapper');
+  const maxW     = window.innerWidth;
+  const maxH     = window.innerHeight;
+  const scaleX   = maxW / W;
+  const scaleY   = maxH / (H + 80); // başlık boşluğu için pay
+  const scale    = Math.min(scaleX, scaleY, 1); // masaüstünde 1'den büyütme
+  wrapper.style.transform       = `scale(${scale})`;
+  wrapper.style.transformOrigin = 'top center';
+}
+scaleGame();
+window.addEventListener('resize', scaleGame);
+
+// ─── OYUN DURUMU ─────────────────────────────────────────────────────────────
+let state = 'idle';   // idle | playing | dead
+let score = 0, wave = 1, hp = 100;
+let frameCount = 0;
+let waveJustChanged = false;
+let waveFlashTimer = 0;
+
+// ─── EMP / RADAR ─────────────────────────────────────────────────────────────
+const EMP_COOLDOWN    = 1200; // 20 saniye @ 60fps
+const EMP_BLIND_DUR   = 420;  // 7 saniye kör (420 frame)
+const EMP_WAVE_COUNT  = 5;    // 2.5 sn içinde 5 dalga (her 0.5 sn'de bir = 30 frame)
+const EMP_WAVE_GAP    = 30;   // dalgalar arası frame (0.5 sn)
+let empTimer = 0;             // 0 = hazır, >0 = bekleme
+let empShockwaves = [];       // aktif şok dalgaları dizisi
+let empWaveQueue  = 0;        // kaç dalga daha ateşlenecek
+let empWaveTimer  = 0;        // bir sonraki dalgaya kalan frame
+
+// ─── KALKAN GÜÇ KAYNAĞI ──────────────────────────────────────────────────────
+const SEA_Y            = H * 0.72;   // su yüzeyi Y koordinatı (sabit referans)
+const SHIELD_DURATION  = 600;        // kalkan 10 saniye (600 frame)
+const DROP_FALL_DUR    = 180;        // 3 saniyede düşer (180 frame)
+const DROP_FLOAT_DUR   = 30;         // su üzerinde 0.5 sn kalır
+const DROP_MIN_INT     = 900;        // min 15 sn (900 frame)
+const DROP_MAX_INT     = 1500;       // max 25 sn (1500 frame)
+
+let shieldActive  = false;  // kalkan aktif mi
+let shieldTimer   = 0;      // kalan frame
+
+// Düşen kalkan nesnesi (null = yok)
+// phase: 'falling' | 'floating' | 'dead'
+let shieldDrop = null;
+let dropSpawnTimer = 0;     // bir sonraki spawn'a kalan frame
+let dropSpawnInterval = DROP_MIN_INT + Math.random() * (DROP_MAX_INT - DROP_MIN_INT);
+const ship = {
+  x: W / 2,
+  y: H - 70,
+  w: 72,
+  h: 34,
+  speed: 0,
+  maxSpeed: 5,
+  accel: 0.4,
+  friction: 0.88,
+};
+
+// ─── KLAVYE ──────────────────────────────────────────────────────────────────
+const keys = {};
+document.addEventListener('keydown', e => keys[e.code] = true);
+document.addEventListener('keyup',   e => keys[e.code] = false);
+
+// ─── MOBİL DOKUNMATIK KONTROLLER ─────────────────────────────────────────────
+// Butonlara basılı tutulduğunda keys['ArrowLeft'/'ArrowRight'] aktif kalır
+// touchstart → bas, touchend/touchcancel → bırak
+function bindMobileBtn(id, keyCode) {
+  const btn = document.getElementById(id);
+
+  const press = (e) => {
+    e.preventDefault();
+    keys[keyCode] = true;
+    btn.classList.add('pressed');
+  };
+  const release = (e) => {
+    e.preventDefault();
+    keys[keyCode] = false;
+    btn.classList.remove('pressed');
+  };
+
+  btn.addEventListener('touchstart',  press,   { passive: false });
+  btn.addEventListener('touchend',    release, { passive: false });
+  btn.addEventListener('touchcancel', release, { passive: false });
+
+  // Fareyle test edebilmek için (masaüstü)
+  btn.addEventListener('mousedown',  press);
+  btn.addEventListener('mouseup',    release);
+  btn.addEventListener('mouseleave', release);
+}
+
+bindMobileBtn('btnLeft',  'ArrowLeft');
+bindMobileBtn('btnRight', 'ArrowRight');
+
+// ─── MERMİ SİSTEMİ ───────────────────────────────────────────────────────────
+let bullets = [];
+const SHOOT_COOLDOWN = 900;  // 15 saniye @ 60fps
+const BURST_DURATION = 270;  // 4.5 saniye taramalı ateş
+const BURST_RATE     = 6;    // her 6 frame'de bir mermi
+
+let shootTimer  = 0;   // 0 = hazır, >0 = bekleme sayacı
+let burstTimer  = 0;   // >0 = tarama aktif
+let burstFrame  = 0;   // tarama içi frame sayacı (mermi ritmi için)
+let sweepAngle  = 0;   // tarama açısı (soldan sağa sallanan)
+
+function fireBullet() {
+  if (shootTimer > 0 || burstTimer > 0 || state !== 'playing') return;
+  // Taramalı ateşi başlat — bekleme süresi tarama BİTİNCE başlar
+  burstTimer = BURST_DURATION;
+  burstFrame = 0;
+  sweepAngle = -0.4;
+}
+
+// ─── EMP / RADAR DARBESI ──────────────────────────────────────────────────────
+function launchEmpWave() {
+  // Tek bir EMP dalgası ateşle: animasyon + uçakları kör et
+  empShockwaves.push({ x: ship.x, y: ship.y, r: 10, maxR: Math.max(W, H) * 1.5, alpha: 1 });
+  planes.forEach(plane => { plane.blind = EMP_BLIND_DUR; });
+}
+
+function fireEMP() {
+  if (empTimer > 0 || state !== 'playing') return;
+  empTimer = EMP_COOLDOWN;
+  // İlk dalgayı hemen ateşle, kalanları kuyruğa al
+  launchEmpWave();
+  empWaveQueue = EMP_WAVE_COUNT - 1; // ilki ateşlendi, kalan 4
+  empWaveTimer = EMP_WAVE_GAP;
+}
+
+// Space / W tuşuyla ateş
+document.addEventListener('keydown', e => {
+  if (e.code === 'Space' || e.code === 'KeyW') fireBullet();
+  if (e.code === 'KeyE') fireEMP();
+});
+
+// Ateş butonu
+const btnShoot = document.getElementById('btnShoot');
+btnShoot.addEventListener('touchstart',  e => { e.preventDefault(); fireBullet(); }, { passive: false });
+btnShoot.addEventListener('mousedown',   e => fireBullet());
+
+// EMP butonu
+const btnEmp = document.getElementById('btnEmp');
+btnEmp.addEventListener('touchstart', e => { e.preventDefault(); fireEMP(); }, { passive: false });
+btnEmp.addEventListener('mousedown',  e => fireEMP());
+
+// Cooldown çubuğu güncelle
+function updateShootHUD() {
+  const fill  = document.getElementById('shootCooldownFill');
+  const burst = burstTimer > 0;
+  const ready = shootTimer === 0 && !burst;
+
+  let pct;
+  if (burst) {
+    pct = Math.round((burstTimer / BURST_DURATION) * 100);
+    fill.style.background = 'linear-gradient(90deg,#ff4444,#ff8844)';
+  } else {
+    pct = ready ? 100 : Math.round(((SHOOT_COOLDOWN - shootTimer) / SHOOT_COOLDOWN) * 100);
+    fill.style.background = 'linear-gradient(90deg,#4af,#8ef)';
+  }
+  fill.style.width = pct + '%';
+  btnShoot.classList.toggle('cooldown', !ready && !burst);
+  btnShoot.classList.toggle('pressed',  burst);
+}
+
+function updateEmpHUD() {
+  const fill  = document.getElementById('empCooldownFill');
+  const ready = empTimer === 0;
+  const pct   = ready ? 100 : Math.round(((EMP_COOLDOWN - empTimer) / EMP_COOLDOWN) * 100);
+  fill.style.width = pct + '%';
+  btnEmp.classList.toggle('cooldown', !ready);
+
+  // Dalga sayacı
+  const secInWave    = Math.floor(frameCount / 60) % 67;
+  const secRemaining = 67 - secInWave;
+  const timerEl = document.getElementById('waveTimer');
+  timerEl.textContent = secRemaining;
+
+  // Flash efekti: dalga değişince 0.5sn kırmızı
+  if (waveFlashTimer > 0) {
+    waveFlashTimer--;
+    timerEl.classList.add('flash');
+  } else {
+    timerEl.classList.remove('flash');
+    waveJustChanged = false;
+  }
+}
+
+// ─── UÇAKLAR ─────────────────────────────────────────────────────────────────
+let planes = [];
+
+/**
+ * ╔══════════════════════════════════════════════════════════════╗
+ * ║  UÇAK AI – 3 Fazlı Kamikaze Sistemi                         ║
+ * ╠══════════════════════════════════════════════════════════════╣
+ * ║  1) FLY-IN  : Merkez üstten rastgele X'e yatay uçuş         ║
+ * ║  2) WARNING : Hover → gemide kırmızı ünlem işareti çıkar    ║
+ * ║  3) DIVE    : Kilitlenen noktaya orta hızda dal              ║
+ * ╚══════════════════════════════════════════════════════════════╝
+ */
+function spawnPlane() {
+  const targetX = 40 + Math.random() * (W - 80); // rastgele X hedefi
+
+  planes.push({
+    x: W / 2,   // hepsi ortadan başlar
+    y: -40,
+
+    size: 20 + Math.random() * 8,
+    angle: 0,
+
+    phase: 'fly-in',   // 'fly-in' | 'warning' | 'dive'
+
+    // Faz 1: Uçup gideceği pozisyon (ekranın üst bölümü)
+    flyTargetX: targetX,
+    flyTargetY: 55 + Math.random() * 40,
+    flySpeed: 3 + Math.random() * 2,
+
+    // Faz 2: Uyarı sayacı
+    warningTimer: 0,
+    warningDuration: 100 + Math.random() * 40,
+    warnX: 0,
+    warnY: 0,
+    patrolDir: Math.random() < 0.5 ? 1 : -1,
+    patrolSpeed: 1.2 + Math.random() * 1.4,
+    patrolBaseX: 0,
+
+    // Faz 3: Dalış vektörü
+    diveVx: 0,
+    diveVy: 0,
+    diveSpeed: 4.8 + wave * 0.35,
+
+    alive: true,
+  });
+}
+
+// ─── PARTİKÜL / PATLAMA ──────────────────────────────────────────────────────
+let particles = [];
+
+function explode(x, y, color = '#ff6622') {
+  for (let i = 0; i < 18; i++) {
+    const ang = Math.random() * Math.PI * 2;
+    const spd = 1 + Math.random() * 4;
+    particles.push({
+      x, y,
+      vx: Math.cos(ang) * spd,
+      vy: Math.sin(ang) * spd,
+      life: 1,
+      decay: 0.03 + Math.random() * 0.04,
+      r: 2 + Math.random() * 4,
+      color,
+    });
+  }
+}
+
+function splash(x, y) {
+  // Su sıçraması: yukarı ve yana fırlayan mavi/beyaz damlalar
+  for (let i = 0; i < 22; i++) {
+    const ang = -Math.PI * 0.1 - Math.random() * Math.PI * 0.8; // ağırlıklı yukarı
+    const spd = 1.5 + Math.random() * 5;
+    particles.push({
+      x: x + (Math.random() - 0.5) * 20,
+      y,
+      vx: Math.cos(ang) * spd,
+      vy: Math.sin(ang) * spd,
+      life: 1,
+      decay: 0.025 + Math.random() * 0.03,
+      r: 2 + Math.random() * 4,
+      color: Math.random() < 0.6 ? '#aaddff' : '#ffffff',
+    });
+  }
+  // Yatay yayılan düz su halkası
+  for (let i = 0; i < 10; i++) {
+    const dir = Math.random() < 0.5 ? 1 : -1;
+    particles.push({
+      x, y,
+      vx: dir * (2 + Math.random() * 4),
+      vy: -Math.random() * 1.5,
+      life: 0.7,
+      decay: 0.02 + Math.random() * 0.02,
+      r: 1.5 + Math.random() * 2.5,
+      color: '#88ccee',
+    });
+  }
+}
+
+// ─── SU DALGALARI ────────────────────────────────────────────────────────────
+let waves = [];
+function initWaves() {
+  waves = [];
+  for (let i = 0; i < 8; i++) {
+    waves.push({ x: Math.random() * W, y: H - 20 - Math.random() * 60, speed: 0.3 + Math.random() * 0.5, alpha: 0.2 + Math.random() * 0.4 });
+  }
+}
+initWaves();
+
+// ─── SPAWN ZAMANLAYICI ───────────────────────────────────────────────────────
+let spawnTimer = 0;
+let speedMult = 1.0;       // her 40 sn'de 1.15 kat artar
+
+function getSpawnInterval() {
+  // Daha sık spawn + speedMult ile azalan süre
+  return Math.max(45, (150 - wave * 14) / speedMult);
+}
+
+// ─── ÇARPIŞMA (AABB) ─────────────────────────────────────────────────────────
+function rectsOverlap(ax, ay, aw, ah, bx, by, bw, bh) {
+  return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+}
+
+// ─── UPDATE ──────────────────────────────────────────────────────────────────
+function update() {
+  frameCount++;
+
+  // Gemi hareketi
+  if (keys['ArrowLeft']  || keys['KeyA']) ship.speed -= ship.accel;
+  if (keys['ArrowRight'] || keys['KeyD']) ship.speed += ship.accel;
+  ship.speed *= ship.friction;
+  ship.speed  = Math.max(-ship.maxSpeed, Math.min(ship.maxSpeed, ship.speed));
+  ship.x     += ship.speed;
+  ship.x      = Math.max(ship.w / 2, Math.min(W - ship.w / 2, ship.x));
+
+  // Su dalgaları
+  waves.forEach(w => { w.x += w.speed; if (w.x > W + 40) w.x = -40; });
+
+  // Spawn
+  spawnTimer++;
+  if (spawnTimer >= getSpawnInterval()) {
+    spawnPlane();
+    spawnTimer = 0;
+  }
+
+  // Her 40 saniyede hız çarpanı %15 artar
+  if (frameCount % 3900 === 0 && frameCount > 0) {
+    speedMult *= 1.05;
+  }
+
+  // Dalga güncelle – her 67 saniyede (4020 frame) bir dalga artar
+  const newWave = 1 + Math.floor(frameCount / 4020);
+  if (newWave > wave) {
+    wave = newWave;
+    waveJustChanged = true;
+    waveFlashTimer = 30; // 0.5 saniye = 30 frame
+  }
+
+  // ─── KALKAN GÜÇ KAYNAĞI GÜNCELLE ────────────────────────────────────────────
+  // Kalkan sayacı
+  if (shieldActive) {
+    shieldTimer--;
+    if (shieldTimer <= 0) { shieldActive = false; shieldTimer = 0; }
+  }
+
+  // Drop spawn zamanlayıcısı
+  if (!shieldDrop) {
+    dropSpawnTimer++;
+    if (dropSpawnTimer >= dropSpawnInterval) {
+      dropSpawnTimer = 0;
+      dropSpawnInterval = DROP_MIN_INT + Math.random() * (DROP_MAX_INT - DROP_MIN_INT);
+      // Rastgele X'ten düşmeye başla (gemi hangi x'te olursa olsun suya geminin x'inde iner)
+      shieldDrop = {
+        startX : 40 + Math.random() * (W - 80),   // sabit X — hiç değişmez
+        x      : 0,
+        y      : 0,
+        frame  : 0,
+        phase  : 'falling',
+      };
+    }
+  }
+
+  // Drop animasyonu
+  if (shieldDrop) {
+    shieldDrop.frame++;
+    const f = shieldDrop.frame;
+
+    if (shieldDrop.phase === 'falling') {
+      shieldDrop.x  = shieldDrop.startX;
+      // Sabit hız: 3 saniyede (180 frame) -40'tan H+40'a iner
+      shieldDrop.y  = -40 + (H + 80) * (f / DROP_FALL_DUR);
+
+      // Oyuncuya değdi mi?
+      const dx = shieldDrop.x - ship.x;
+      const dy = shieldDrop.y - ship.y;
+      if (Math.sqrt(dx*dx + dy*dy) < 48) {
+        shieldActive = true;
+        shieldTimer  = SHIELD_DURATION;
+        shieldDrop   = null;
+      }
+
+      // Ekran altına geçti — yok olur
+      if (shieldDrop && shieldDrop.y > H + 40) {
+        shieldDrop = null;
+      }
+    }
+  }
+
+  // ─── UÇAK AI GÜNCELLEMESİ ─────────────────────────────────────────────────
+  planes.forEach(plane => {
+    if (!plane.alive) return;
+
+    if (plane.phase === 'fly-in') {
+      // ── FAZ 1: MERKEZ'DEN RASTGELE KONUMA YAT UÇUŞ ───────────────────────
+      const dx = plane.flyTargetX - plane.x;
+      const dy = plane.flyTargetY - plane.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < 6) {
+        // Hedefe ulaştı → warning fazına geç, geminin konumunu kilitle
+        plane.x = plane.flyTargetX;
+        plane.y = plane.flyTargetY;
+        plane.phase = 'warning';
+        plane.patrolBaseX = plane.flyTargetX;
+        plane.warnX = ship.x;
+        plane.warnY = ship.y - ship.h / 2 - 10;
+      } else {
+        const spd = Math.min(plane.flySpeed, dist);
+        plane.x += (dx / dist) * spd;
+        plane.y += (dy / dist) * spd;
+        // görsel açı: uçuş yönüne bak
+        plane.angle = Math.atan2(dy, dx) - Math.PI / 2;
+      }
+
+    } else if (plane.phase === 'warning') {
+      // ── FAZ 2: UYARI – devriye uçuşu yapar, gemide ünlem yanar ──────────
+      if (plane.blind > 0) plane.blind--;
+      // Sağa-sola devriye
+      plane.x += plane.patrolDir * plane.patrolSpeed;
+      const patrolRange = 55;
+      if (plane.x > plane.patrolBaseX + patrolRange) { plane.patrolDir = -1; }
+      if (plane.x < plane.patrolBaseX - patrolRange) { plane.patrolDir =  1; }
+
+      // Hafif yukarı-aşağı sallanma
+      plane.y = plane.flyTargetY + Math.sin(frameCount * 0.08) * 6;
+
+      // Görsel: hareket yönüne bak
+      plane.angle = plane.patrolDir * 0.18 + Math.sin(frameCount * 0.08) * 0.08;
+
+      plane.warningTimer++;
+
+      if (plane.warningTimer >= plane.warningDuration) {
+        // Uyarı bitti → dalış vektörünü hesapla ve dal
+        plane.phase = 'dive';
+        const ddx = plane.warnX - plane.x;
+        const ddy = ship.y     - plane.y;   // geminin gerçek Y'sine dal
+        const ang = Math.atan2(ddy, ddx);
+        plane.diveVx = Math.cos(ang) * plane.diveSpeed;
+        plane.diveVy = Math.sin(ang) * plane.diveSpeed;
+        plane.angle  = ang - Math.PI / 2;
+      }
+
+    } else {
+      // ── FAZ 3: DALIŞ ──────────────────────────────────────────────────────
+      // Kör ise sayacı azalt
+      if (plane.blind > 0) plane.blind--;
+
+      // Sabit yönde, hafif ivmelenerek dal
+      const progress = Math.max(0, (plane.y - plane.flyTargetY) / (H - plane.flyTargetY));
+      const accel    = 1 + progress * 0.6;
+      plane.x += plane.diveVx * accel;
+      plane.y += plane.diveVy * accel;
+
+      // ── GEMİ İLE ÇARPIŞMA ────────────────────────────────────────────────
+      // Kör iken tüm 7 saniye boyunca çarpışma yok (ıskala)
+      const canHit = !plane.blind || plane.blind <= 0;
+      if (canHit && rectsOverlap(
+            plane.x - plane.size, plane.y - plane.size / 2,
+            plane.size * 2, plane.size,
+            ship.x - ship.w / 2, ship.y - ship.h / 2,
+            ship.w, ship.h
+          )) {
+        plane.alive = false;
+        explode(plane.x, plane.y, '#ff4411');
+        if (shieldActive) {
+          // Kalkan vuruldu — kalkan kırılır, hasar yok
+          shieldActive = false; shieldTimer = 0;
+          explode(ship.x, ship.y, '#ffffaa');
+        } else {
+          explode(ship.x, ship.y - 10, '#ffaa22');
+          hp = Math.max(0, hp - 20);
+          if (hp <= 0) gameOver();
+        }
+      }
+
+      // Dalışı geçtik — uçağın kendi x'inde, su yüzeyinin biraz altında sıçrama
+      if (!plane.splashed && plane.y + plane.size * 0.9 >= SEA_Y) {
+        plane.splashed = true;
+        splash(plane.x, SEA_Y + 22);
+      }
+      if (plane.y > H + 60) {
+        score += 25;
+        plane.alive = false;
+      }
+    }
+
+    // Ekran dışı temizlik (yanlardan kaçanlar)
+    if (plane.x < -80 || plane.x > W + 80) {
+      plane.alive = false;
+    }
+  });
+
+  planes = planes.filter(p => p.alive);
+
+  // EMP dalga kuyruğu: sıradaki dalgayı zamanında ateşle
+  if (empWaveQueue > 0) {
+    empWaveTimer--;
+    if (empWaveTimer <= 0) {
+      launchEmpWave();
+      empWaveQueue--;
+      empWaveTimer = EMP_WAVE_GAP;
+    }
+  }
+
+  // EMP şok dalgaları animasyonu (çoklu)
+  empShockwaves.forEach(sw => {
+    sw.r += 18;
+    sw.alpha = Math.max(0, 1 - sw.r / sw.maxR);
+  });
+  empShockwaves = empShockwaves.filter(sw => sw.alpha > 0);
+
+  // Partiküller
+  particles.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    p.vy += 0.08; // yerçekimi
+    p.life -= p.decay;
+  });
+  particles = particles.filter(p => p.life > 0);
+
+  // ─── MERMİLER ────────────────────────────────────────────────────────────────
+  if (shootTimer > 0) shootTimer--;
+  if (empTimer > 0) empTimer--;
+  updateShootHUD();
+
+  // Taramalı ateş aktifse her BURST_RATE frame'de bir mermi fırlat
+  if (burstTimer > 0) {
+    burstTimer--;
+    burstFrame++;
+
+    // Tarama bittiğinde bekleme başlasın
+    if (burstTimer === 0) {
+      shootTimer = SHOOT_COOLDOWN;
+    }
+
+    if (burstFrame % BURST_RATE === 0) {
+      // sweepAngle soldan sağa sinüs dalgasıyla sallanır
+      const t = 1 - (burstTimer / BURST_DURATION);
+      sweepAngle = Math.sin(t * Math.PI * 5) * 0.45; // ~5 tam salınım
+
+      const vx = Math.sin(sweepAngle) * 12;
+      const vy = -Math.cos(sweepAngle) * 12;
+      bullets.push({
+        x: ship.x, y: ship.y - ship.h / 2,
+        vx, vy, alive: true,
+        isBurst: true,
+      });
+    }
+  }
+
+  bullets.forEach(b => {
+    b.x += b.vx || 0;
+    b.y += b.vy;
+    if (b.y < -20 || b.x < -20 || b.x > W + 20) { b.alive = false; return; }
+
+    // Mermi – uçak çarpışması
+    planes.forEach(plane => {
+      if (!plane.alive || !b.alive) return;
+      const dx = b.x - plane.x;
+      const dy = b.y - plane.y;
+      if (Math.sqrt(dx*dx + dy*dy) < plane.size + 6) {
+        b.alive = false;
+        plane.alive = false;
+        explode(plane.x, plane.y, '#ffcc22');
+        explode(plane.x, plane.y, '#ff6600');
+        score += 50;
+      }
+    });
+  });
+  bullets = bullets.filter(b => b.alive);
+
+  // HUD
+  document.getElementById('scoreDisplay').textContent = score;
+  document.getElementById('waveDisplay').textContent  = wave;
+  document.getElementById('hpDisplay').textContent    = hp;
+  document.getElementById('healthFill').style.width   = hp + '%';
+  updateEmpHUD();
+}
+
+// ─── ÇİZİM ───────────────────────────────────────────────────────────────────
+function draw() {
+  // Gökyüzü gradyanı
+  const sky = ctx.createLinearGradient(0, 0, 0, H * 0.65);
+  sky.addColorStop(0, '#0a1520');
+  sky.addColorStop(1, '#1a3048');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, W, H);
+
+  // Deniz
+  const sea = ctx.createLinearGradient(0, H * 0.6, 0, H);
+  sea.addColorStop(0, '#0d2a3d');
+  sea.addColorStop(1, '#061520');
+  ctx.fillStyle = sea;
+  ctx.fillRect(0, H * 0.6, W, H * 0.4);
+
+  // Deniz – dalga çizgileri
+  ctx.save();
+  waves.forEach(w => {
+    ctx.strokeStyle = `rgba(100,160,200,${w.alpha})`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(w.x, w.y);
+    ctx.lineTo(w.x + 30, w.y);
+    ctx.stroke();
+  });
+  ctx.restore();
+
+  // Yıldızlar (sabit, framede bir kez çizilir)
+  if (frameCount === 1 || !window._stars) {
+    window._stars = Array.from({length: 60}, () => ({
+      x: Math.random() * W, y: Math.random() * H * 0.55,
+      r: Math.random() * 1.2, a: 0.3 + Math.random() * 0.7
+    }));
+  }
+  window._stars.forEach(s => {
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,255,255,${s.a})`;
+    ctx.fill();
+  });
+
+  // ─── UÇAKLAR ───────────────────────────────────────────────────────────────
+  planes.forEach(plane => drawPlane(plane));
+
+  // ─── UYARI ÜNLEMLERİ (!): warning fazındaki uçakların hedef noktası ────────
+  planes.forEach(plane => {
+    if (plane.phase !== 'warning') return;
+
+    const progress = plane.warningTimer / plane.warningDuration; // 0→1
+    const pulse    = 0.5 + 0.5 * Math.sin(frameCount * 0.3);    // titreme
+    const alpha    = 0.55 + 0.45 * pulse;
+
+    const wx = plane.warnX;
+    const wy = plane.warnY;
+    const r  = 22 + pulse * 6;
+
+    // Dış halka
+    ctx.beginPath();
+    ctx.arc(wx, wy, r, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(255, 40, 40, ${alpha * 0.6})`;
+    ctx.lineWidth   = 2;
+    ctx.stroke();
+
+    // İç daire
+    ctx.beginPath();
+    ctx.arc(wx, wy, r * 0.6, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(200, 0, 0, ${alpha * 0.25})`;
+    ctx.fill();
+
+    // "!" metni
+    ctx.font        = `bold ${20 + pulse * 4}px 'Oswald', sans-serif`;
+    ctx.textAlign   = 'center';
+    ctx.textBaseline= 'middle';
+    ctx.fillStyle   = `rgba(255, 80, 80, ${alpha})`;
+    ctx.shadowColor = '#ff0000';
+    ctx.shadowBlur  = 12;
+    ctx.fillText('!', wx, wy);
+    ctx.shadowBlur  = 0;
+
+    // Geri sayım yayı (çember dolar ve dalış başlar)
+    ctx.beginPath();
+    ctx.arc(wx, wy, r + 8, -Math.PI / 2, -Math.PI / 2 + progress * Math.PI * 2);
+    ctx.strokeStyle = `rgba(255, 100, 100, ${0.7})`;
+    ctx.lineWidth   = 3;
+    ctx.stroke();
+  });
+
+  // ─── GEMİ ──────────────────────────────────────────────────────────────────
+  drawShip();
+
+  // ─── AKTİF KALKAN BALONCUğU (gemiye yapışık — biz hareket ettikçe kayar) ────
+  if (shieldActive) {
+    const pulse = 0.7 + 0.3 * Math.sin(frameCount * 0.15);
+    const r     = 52;
+    ctx.save();
+    // Dış parlama halkası
+    ctx.beginPath();
+    ctx.arc(ship.x, ship.y, r, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(100, 200, 255, ${0.65 * pulse})`;
+    ctx.lineWidth   = 3;
+    ctx.shadowColor = '#44aaff';
+    ctx.shadowBlur  = 22;
+    ctx.stroke();
+    // İç şeffaf dolgu
+    ctx.beginPath();
+    ctx.arc(ship.x, ship.y, r - 4, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(60, 150, 255, ${0.12 * pulse})`;
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    // Sayaç — neon sarı, balonun altında
+    const secs = Math.ceil(shieldTimer / 60);
+    ctx.font         = 'bold 15px "Oswald", sans-serif';
+    ctx.textAlign    = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillStyle    = '#ffee00';
+    ctx.shadowColor  = '#ffcc00';
+    ctx.shadowBlur   = 12;
+    ctx.fillText(secs, ship.x, ship.y + r + 5);
+    ctx.shadowBlur   = 0;
+    ctx.restore();
+  }
+
+  // ─── DÜŞEN KALKAN ──────────────────────────────────────────────────────────
+  if (shieldDrop) {
+    const { x, y, phase } = shieldDrop;
+    const bobY = phase === 'floating' ? y + Math.sin(frameCount * 0.25) * 3 : y;
+
+    ctx.save();
+    ctx.globalAlpha = 1;
+
+    // Baloncuk (dış çevre)
+    ctx.beginPath();
+    ctx.arc(x, bobY, 22, 0, Math.PI * 2);
+    ctx.strokeStyle = '#88ddff';
+    ctx.lineWidth   = 2;
+    ctx.shadowColor = '#44aaff';
+    ctx.shadowBlur  = 14;
+    ctx.stroke();
+    // Baloncuk iç dolgu
+    ctx.beginPath();
+    ctx.arc(x, bobY, 20, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(60,160,255,0.18)';
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Kalkan sembolü (盾 yerine basit shield icon: yarım daire + ok)
+    ctx.strokeStyle = '#cceeff';
+    ctx.lineWidth   = 2.2;
+    ctx.shadowColor = '#aaddff';
+    ctx.shadowBlur  = 8;
+    // Dış kalkan şekli
+    ctx.beginPath();
+    ctx.moveTo(x, bobY - 11);
+    ctx.lineTo(x + 8, bobY - 7);
+    ctx.lineTo(x + 8, bobY + 1);
+    ctx.quadraticCurveTo(x + 8, bobY + 10, x, bobY + 13);
+    ctx.quadraticCurveTo(x - 8, bobY + 10, x - 8, bobY + 1);
+    ctx.lineTo(x - 8, bobY - 7);
+    ctx.closePath();
+    ctx.stroke();
+    // İç çizgi (ortada)
+    ctx.beginPath();
+    ctx.moveTo(x, bobY - 10);
+    ctx.lineTo(x, bobY + 11);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+
+  // ─── MERMİLER ──────────────────────────────────────────────────────────────
+  bullets.forEach(b => {
+    ctx.save();
+    const color  = b.isBurst ? '#ffcc44' : '#cceeff';
+    const glow   = b.isBurst ? '#ff8800' : '#88ddff';
+    const angle  = Math.atan2(b.vy, b.vx || 0) + Math.PI / 2;
+
+    ctx.translate(b.x, b.y);
+    ctx.rotate(angle);
+    ctx.shadowColor = glow;
+    ctx.shadowBlur  = 12;
+    ctx.fillStyle   = color;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 3, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Kuyruk izi
+    const grad = ctx.createLinearGradient(0, 0, 0, 20);
+    grad.addColorStop(0, b.isBurst ? 'rgba(255,160,0,0.6)' : 'rgba(100,200,255,0.6)');
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.ellipse(0, 14, 2, 12, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.restore();
+  });
+
+  // ─── PARTİKÜLLER ───────────────────────────────────────────────────────────
+  particles.forEach(p => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2);
+    ctx.fillStyle = p.color;
+    ctx.globalAlpha = p.life;
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  });
+  // ─── EMP ŞOK DALGALARI ──────────────────────────────────────────────────────
+  empShockwaves.forEach(sw => {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(sw.x, sw.y, sw.r, 0, Math.PI * 2);
+    ctx.strokeStyle = `rgba(0, 255, 120, ${sw.alpha * 0.85})`;
+    ctx.lineWidth   = 4 - sw.alpha * 2;
+    ctx.shadowColor = '#00ff88';
+    ctx.shadowBlur  = 20;
+    ctx.stroke();
+    if (sw.r > 30) {
+      ctx.beginPath();
+      ctx.arc(sw.x, sw.y, sw.r * 0.65, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(100, 255, 180, ${sw.alpha * 0.4})`;
+      ctx.lineWidth   = 2;
+      ctx.stroke();
+    }
+    ctx.shadowBlur = 0;
+    ctx.restore();
+  });
+
+  // ─── KÖR UÇAKLAR ÜZERİNE ÇARPI ─────────────────────────────────────────────
+  planes.forEach(plane => {
+    if (!plane.blind || plane.blind <= 0) return;
+    ctx.save();
+    ctx.translate(plane.x, plane.y);
+    ctx.rotate(plane.angle);
+    // Burun noktası uçağın local koordinatında (0, -size*0.9)
+    const noseY = -plane.size * 0.9;
+    const cs = 6;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth   = 2.5;
+    ctx.shadowColor = '#ffffff';
+    ctx.shadowBlur  = 6;
+    ctx.beginPath();
+    ctx.moveTo(-cs, noseY - cs); ctx.lineTo(cs, noseY + cs);
+    ctx.moveTo(cs,  noseY - cs); ctx.lineTo(-cs, noseY + cs);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.restore();
+  });
+}
+
+function drawShip() {
+  const { x, y, w, h } = ship;
+  ctx.save();
+  ctx.translate(x, y);
+
+  // Gövde
+  ctx.beginPath();
+  ctx.moveTo(-w/2, h/2);
+  ctx.lineTo(-w/2 + 10, -h/2);
+  ctx.lineTo(w/2 - 10, -h/2);
+  ctx.lineTo(w/2, h/2);
+  ctx.closePath();
+  ctx.fillStyle   = '#4a5a6a';
+  ctx.strokeStyle = '#6a8a9a';
+  ctx.lineWidth   = 1.5;
+  ctx.fill();
+  ctx.stroke();
+
+  // Köprü
+  ctx.beginPath();
+  ctx.rect(-12, -h/2 - 18, 24, 18);
+  ctx.fillStyle   = '#3a4a5a';
+  ctx.strokeStyle = '#5a7a8a';
+  ctx.fill(); ctx.stroke();
+
+  // Baca
+  ctx.beginPath();
+  ctx.rect(-4, -h/2 - 30, 8, 14);
+  ctx.fillStyle = '#2a3a4a';
+  ctx.fill();
+
+  // Hareket etkisi (hız çizgileri)
+  if (Math.abs(ship.speed) > 1) {
+    const dir = ship.speed > 0 ? 1 : -1;
+    ctx.strokeStyle = 'rgba(100,180,220,0.3)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 3; i++) {
+      ctx.beginPath();
+      ctx.moveTo(-dir * (w/2 + 5), -h/4 + i * 10);
+      ctx.lineTo(-dir * (w/2 + 5 + 20 + i*8), -h/4 + i * 10);
+      ctx.stroke();
+    }
+  }
+
+  // Dalgalanma
+  ctx.beginPath();
+  ctx.ellipse(0, h/2 + 4, w/2 + 8, 6, 0, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(40,100,140,0.5)';
+  ctx.fill();
+
+  ctx.restore();
+}
+
+function drawPlane(plane) {
+  ctx.save();
+  ctx.translate(plane.x, plane.y);
+  ctx.rotate(plane.angle);
+
+  const s = plane.size;
+
+  // Gövde
+  ctx.beginPath();
+  ctx.moveTo(0, -s * 0.9);  // burun
+  ctx.lineTo(s * 0.18, s * 0.5);
+  ctx.lineTo(-s * 0.18, s * 0.5);
+  ctx.closePath();
+  ctx.fillStyle   = '#c8330a';
+  ctx.strokeStyle = '#ff5522';
+  ctx.lineWidth   = 1;
+  ctx.fill(); ctx.stroke();
+
+  // Sol kanat
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(-s, s * 0.15);
+  ctx.lineTo(-s * 0.7, s * 0.5);
+  ctx.lineTo(-s * 0.15, s * 0.25);
+  ctx.closePath();
+  ctx.fillStyle = '#aa2508';
+  ctx.fill(); ctx.stroke();
+
+  // Sağ kanat
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(s, s * 0.15);
+  ctx.lineTo(s * 0.7, s * 0.5);
+  ctx.lineTo(s * 0.15, s * 0.25);
+  ctx.closePath();
+  ctx.fill(); ctx.stroke();
+
+  // Kuyruk
+  ctx.beginPath();
+  ctx.moveTo(0, s * 0.5);
+  ctx.lineTo(-s * 0.3, s * 0.9);
+  ctx.lineTo(s * 0.3, s * 0.9);
+  ctx.closePath();
+  ctx.fillStyle = '#882005';
+  ctx.fill(); ctx.stroke();
+
+  // Motor ışıması (yaklaşma fazında)
+  if (plane.phase === 'dive') {
+    ctx.beginPath();
+    ctx.arc(0, -s * 0.9, 5, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(255,160,50,${0.6 + 0.4 * Math.sin(frameCount * 0.3)})`;
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+// ─── OYUN AKİŞİ ──────────────────────────────────────────────────────────────
+let animId;
+
+function gameLoop() {
+  update();
+  draw();
+  animId = requestAnimationFrame(gameLoop);
+}
+
+function startGame() {
+  score = 0; hp = 100; wave = 1; frameCount = 0;
+  planes = []; particles = []; bullets = []; spawnTimer = 0; shootTimer = 0;
+  burstTimer = 0; burstFrame = 0; speedMult = 1.0;
+  waveJustChanged = false; waveFlashTimer = 0;
+  empTimer = 0; empShockwaves = []; empWaveQueue = 0; empWaveTimer = 0;
+  shieldActive = false; shieldTimer = 0; shieldDrop = null;
+  dropSpawnTimer = 0;
+  dropSpawnInterval = DROP_MIN_INT + Math.random() * (DROP_MAX_INT - DROP_MIN_INT);
+  ship.x = W / 2; ship.speed = 0;
+  state = 'playing';
+
+  document.getElementById('overlay').style.display  = 'none';
+  document.getElementById('finalScore').style.display = 'none';
+
+  cancelAnimationFrame(animId);
+  gameLoop();
+}
+
+function gameOver() {
+  state = 'dead';
+  cancelAnimationFrame(animId);
+
+  // Son bir render
+  draw();
+
+  const ov = document.getElementById('overlay');
+  document.getElementById('overlayTitle').textContent  = 'GEMİ BATTI';
+  document.getElementById('overlayMsg').textContent    = 'Düşman Kamikazeleri Gemiyi Batırdı';
+  document.getElementById('finalScore').textContent    = score + ' PUAN';
+  document.getElementById('finalScore').style.display  = 'block';
+  document.getElementById('startBtn').textContent      = 'TEKRAR OYNA';
+  ov.style.display = 'flex';
+}
+
+document.getElementById('startBtn').addEventListener('click', startGame);
+
+// ─── PWA SERVICE WORKER ───────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}
+
+// ─── İLK ÇERÇEVE ─────────────────────────────────────────────────────────────
+draw();
+</script>
+</body>
+</html>
